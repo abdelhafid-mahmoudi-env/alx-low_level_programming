@@ -1,7 +1,14 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
-
+/* 
+ * for this cours i will try to create a code that create random number
+ * then ill check if positive or nigative
+ * 
+ * main - is the entry point
+ * return : 0
+ *
+ * */
 int main(void)
 {
 	int n;
