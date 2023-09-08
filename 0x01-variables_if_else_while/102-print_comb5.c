@@ -1,3 +1,8 @@
+/*
+ * File: 102-print_comb5.c
+ * Auth: ABDELHAFID MAHMOUDI
+ * */
+
 #include <stdio.h>
 
 /**
