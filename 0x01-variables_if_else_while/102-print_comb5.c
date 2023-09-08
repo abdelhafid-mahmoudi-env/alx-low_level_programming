@@ -1,12 +1,13 @@
 /*
  * File: 102-print_comb5.c
- * Auth: ABDELHAFID MAHMOUDI
- * */
+ * Auth: Abdelhafid mahmoudi
+ */
 
 #include <stdio.h>
 
 /**
- * main
+ * main - Prints all possible combinations of two two-digit numbers,
+ *        ranging from 0-99, separated by a comma followed by a space.
  *
  * Return: Always 0.
  */
