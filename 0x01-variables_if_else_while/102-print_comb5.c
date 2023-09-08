@@ -1,38 +1,33 @@
 #include <stdio.h>
 
 /**
- * main - Entry point
+ * main
  *
- * Return: Always 0
+ * Return: Always 0.
  */
+int main(void)
+{
+	int num1, num2;
 
-int main() {
-    int i, j;
+	for (num1 = 0; num1 <= 98; num1++)
+	{
+		for (num2 = num1 + 1; num2 <= 99; num2++)
+		{
+			putchar((num1 / 10) + '0');
+			putchar((num1 % 10) + '0');
+			putchar(' ');
+			putchar((num2 / 10) + '0');
+			putchar((num2 % 10) + '0');
 
-    for (i = 0; i <= 98; i++) {
-        for (j = i + 1; j <= 99; j++) {
-            // Extract the tens and ones digits for i and j
-            int tens_i = i / 10;
-            int ones_i = i % 10;
-            int tens_j = j / 10;
-            int ones_j = j % 10;
+			if (num1 == 98 && num2 == 99)
+				continue;
 
-            // Print the first two-digit number
-            putchar('0' + tens_i);
-            putchar('0' + ones_i);
-            putchar(' ');
+			putchar(',');
+			putchar(' ');
+		}
+	}
 
-            // Print the second two-digit number
-            putchar('0' + tens_j);
-            putchar('0' + ones_j);
+	putchar('\n');
 
-            // Print a comma and a space to separate combinations
-            if (i != 98 || j != 99) {
-                putchar(',');
-                putchar(' ');
-            }
-        }
-    }
-
-    return 0;
+	return (0);
 }
