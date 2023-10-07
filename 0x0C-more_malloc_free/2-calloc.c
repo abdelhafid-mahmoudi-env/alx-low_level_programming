@@ -14,6 +14,7 @@
 char *_memset(char *ptr, int x, unsigned int n)
 {
 	unsigned int i;
+
 	for (i = 0; i < n; i++)
 		ptr[i] = x;
 	return (ptr);
@@ -24,8 +25,7 @@ char *_memset(char *ptr, int x, unsigned int n)
  * @nmemb: number of elements of array to allocate
  * @size: size of elements
  *
- * Return: Pointer to allocated memory or normal process termination
- * with a status value of 98
+ * Return: Pointer to allocated memory or NULL on failure
  */
 void *_calloc(unsigned int nmemb, unsigned int size)
 {
@@ -43,3 +43,4 @@ void *_calloc(unsigned int nmemb, unsigned int size)
 
 	return (p);
 }
+
