@@ -1,6 +1,7 @@
 #include <stdio.h>
-
 #include "lists.h"
+
+void before_main() __attribute__((constructor));
 
 /**
  * before_main - funcion that prints a specific string before the main,
@@ -8,7 +9,6 @@
  *
  * Return: no return.
  */
-
 
 void before_main(void)
 {
