@@ -1,26 +1,15 @@
-;--------------------------------------------------------------
 section .data
-    msg db "Hello, Holberton", 0      ; Message string
-    fmt db "%s", 10, 0               ; Format string
+hello db "Hello, Holberton",10 ; The string to be printed (with newline)
 
 section .text
-    global main
+global main
+
+extern printf
 
 main:
-    ; Save the base pointer
     push rbp
-
-    ; Set up the parameters for printf
-    mov rdi, fmt        ; Format string
-    mov rsi, msg        ; Message string
-    xor rax, rax        ; Clear rax (no SIMD register needed)
-
-    ; Call the printf function
+    mov rdi, hello ; Address of the string
     call printf
-
-    ; Restore the base pointer
     pop rbp
-
-    ; Exit with a return value of 0
-    xor rax, rax
     ret
+
