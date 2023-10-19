@@ -1,4 +1,4 @@
-#include <lists.h>
+#include "lists.h"
 
 void weird(void) __attribute__ ((constructor));
 
