@@ -1,32 +1,26 @@
-;-----------------------------------------------------------------------
-; File: 101-hello_holberton.asm
-;-----------------------------------------------------------------------
-; Description: This is a 64-bit assembly program that prints the
-; message "Hello, Holberton" followed by a new line using the printf
-; function.
-;
-; Restrictions:
-; - Only allowed to use the printf function.
-; - Not allowed to use interrupts.
-; - To compile, use nasm and gcc:
-;   nasm -f elf64 101-hello_holberton.asm && gcc -no-pie -std=gnu89 101-hello_holberton.o -o hello
-;
-; Usage: ./hello
-;
-; Expected Output:
-; Hello, Holberton
-;-----------------------------------------------------------------------
-
+;--------------------------------------------------------------
 section .data
-    hello db "Hello, Holberton", 10, 0  ; Define a null-terminated string with a newline character
+    msg db "Hello, Holberton", 0      ; Message string
+    fmt db "%s", 10, 0               ; Format string
 
 section .text
     global main
-    extern printf
 
 main:
+    ; Save the base pointer
     push rbp
-    mov rdi, hello         ; Load the address of the string into rdi
-    call printf            ; Call the printf function
+
+    ; Set up the parameters for printf
+    mov rdi, fmt        ; Format string
+    mov rsi, msg        ; Message string
+    xor rax, rax        ; Clear rax (no SIMD register needed)
+
+    ; Call the printf function
+    call printf
+
+    ; Restore the base pointer
     pop rbp
+
+    ; Exit with a return value of 0
+    xor rax, rax
     ret
