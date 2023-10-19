@@ -1,16 +1,13 @@
-#include "lists.h"
+#include <lists.h>
 
-void before_main(void) __attribute__((constructor));
+void weird(void) __attribute__ ((constructor));
 
 /**
- * before_main - funcion that prints a specific string before the main,
- * function in executed.
+ * weird - This function is executed before main.
  *
- * Return: no return.
+ * It prints the desired message.
  */
-
-void before_main(void)
+void weird(void)
 {
-	printf("You're beat! and yet, you must allow,\n");
-	printf("I bore my house upon my back!\n");
+    printf("You're beat! and yet, you must allow,\nI bore my house upon my back!\n");
 }
