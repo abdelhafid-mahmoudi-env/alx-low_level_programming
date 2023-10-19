@@ -1,15 +1,21 @@
-section .data
-hello db "Hello, Holberton",10 ; The string to be printed (with newline)
+extern printf
 
 section .text
 global main
 
-extern printf
-
 main:
-    push rbp
-    mov rdi, hello ; Address of the string
-    call printf
-    pop rbp
-    ret
+push rbp
 
+mov rdi, fmt
+mov rsi, msg
+mov rax, 0
+call printf
+
+pop rbp
+
+mov rax, 0
+ret
+
+section .data
+msg: db "Hello, Holberton", 0
+fmt: db "%s", 10, 0
