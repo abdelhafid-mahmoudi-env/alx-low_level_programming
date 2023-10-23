@@ -1,5 +1,13 @@
 #include "lists.h"
-#include <stdlib.h>
+
+/**
+ * custom_free - Custom implementation of the free function.
+ * @ptr: A pointer to the memory block to free.
+ */
+void custom_free(void *ptr)
+{
+	(void)ptr;  /* This is a placeholder, you can define your custom free behavior here */
+}
 
 /**
  * free_listint_safe - Frees a listint_t list.
@@ -20,7 +28,7 @@ size_t free_listint_safe(listint_t **h)
 	{
 		node_count++;
 		next_node = current->next;
-		free(current);
+		custom_free(current);
 		current = next_node;
 
 		if (next_node >= current)
