@@ -1,46 +1,78 @@
 #include "lists.h"
 
-size_t free_listint_safe(listint_t **h)
-{
-    listint_t *slow, *fast, *temp;
-    size_t size = 0;
+size_t looped_listint_count(listint_t *head);
+size_t free_listint_safe(listint_t **h);
 
-    if (h == NULL || *h == NULL)
+size_t looped_listint_count(listint_t *head)
+{
+    listint_t *tortoise, *hare;
+    size_t nodes = 1;
+
+    if (head == NULL || head->next == NULL)
         return (0);
 
-    slow = *h;
-    fast = (*h)->next;
+    tortoise = head->next;
+    hare = (head->next)->next;
 
-    while (fast != NULL && fast->next != NULL)
+    while (hare)
     {
-        if (slow == fast)
+        if (tortoise == hare)
         {
-            /* Loop detected, free the entire list and break */
-            slow = *h;
-            while (slow != fast)
+            tortoise = head;
+            while (tortoise != hare)
             {
-                temp = slow;
-                slow = slow->next;
-                free(temp);
-                size++;
+                nodes++;
+                tortoise = tortoise->next;
+                hare = hare->next;
             }
-            *h = NULL; /* Set the head to NULL */
-            return (size);
+
+            tortoise = tortoise->next;
+            while (tortoise != hare)
+            {
+                nodes++;
+                tortoise = tortoise->next;
+            }
+
+            return (nodes);
         }
-        slow = slow->next;
-        fast = fast->next->next;
-        size++;
+
+        tortoise = tortoise->next;
+        hare = (hare->next)->next;
     }
 
-    /* No loop detected, free the list normally */
-    while (*h != NULL)
-    {
-        temp = *h;
-        *h = (*h)->next;
-        free(temp);
-        size++;
-    }
-
-    return (size);
+    return (0);
 }
 
+size_t free_listint_safe(listint_t **h)
+{
+    listint_t *tmp;
+    size_t nodes, index;
+
+    nodes = looped_listint_count(*h);
+
+    if (nodes == 0)
+    {
+        for (; h != NULL && *h != NULL; nodes++)
+        {
+            tmp = (*h)->next;
+            free(*h);
+            *h = tmp;
+        }
+    }
+
+    else
+    {
+        for (index = 0; index < nodes; index++)
+        {
+            tmp = (*h)->next;
+            free(*h);
+            *h = tmp;
+        }
+
+        *h = NULL;
+    }
+
+    *h = NULL;
+
+    return (nodes);
+}
