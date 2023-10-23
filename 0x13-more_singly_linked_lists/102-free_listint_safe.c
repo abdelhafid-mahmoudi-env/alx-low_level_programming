@@ -1,4 +1,5 @@
 #include "lists.h"
+#include <stdlib.h>
 
 /**
  * free_listint_safe - Frees a listint_t linked list safely.
@@ -43,4 +44,3 @@ size_t free_listint_safe(listint_t **h)
 
     return (count);
 }
-
