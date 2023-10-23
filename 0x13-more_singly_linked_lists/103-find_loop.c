@@ -1,12 +1,10 @@
 #include "lists.h"
 
 /**
- * find_listint_loop - Finds the loop contained in
- *                     a listint_t linked list.
- * @head: A pointer to the head of the listint_t list.
+ * find_listint_loop - Finds the loop.
+ * @head: pointer
  *
- * Return: If there is no loop - NULL.
- *         Otherwise - the address of the node where the loop starts.
+ * Return: return the finding list looping
  */
 listint_t *find_listint_loop(listint_t *head)
 {
@@ -27,10 +25,10 @@ listint_t *find_listint_loop(listint_t *head)
 				hare = hare->next;
 			}
 
-			return tortoise;
+			return (tortoise);
 		}
 	}
 
-	return NULL;
+	return (NULL);
 }
 
