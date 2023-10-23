@@ -11,42 +11,42 @@
  */
 size_t map_len(const listint_t *h)
 {
-    const listint_t *slow, *fast;
-    size_t count = 1;
+	const listint_t *slow, *fast;
+	size_t count = 1;
 
-    if (h == NULL || h->next == NULL)
-        return (0);
+	if (h == NULL || h->next == NULL)
+		return (0);
 
-    slow = h->next;
-    fast = (h->next)->next;
+	slow = h->next;
+	fast = (h->next)->next;
 
-    while (fast)
-    {
-        if (slow == fast)
-        {
-            slow = h;
-            while (slow != fast)
-            {
-                count++;
-                slow = slow->next;
-                fast = fast->next;
-            }
+	while (fast)
+	{
+		if (slow == fast)
+		{
+			slow = h;
+			while (slow != fast)
+			{
+				count++;
+				slow = slow->next;
+				fast = fast->next;
+			}
 
-            slow = slow->next;
-            while (slow != fast)
-            {
-                count++;
-                slow = slow->next;
-            }
+			slow = slow->next;
+			while (slow != fast)
+			{
+				count++;
+				slow = slow->next;
+			}
 
-            return (count);
-        }
+			return (count);
+		}
 
-        slow = slow->next;
-        fast = (fast->next)->next;
-    }
+		slow = slow->next;
+		fast = (fast->next)->next;
+	}
 
-    return (0);
+	return (0);
 }
 
 /**
@@ -57,28 +57,28 @@ size_t map_len(const listint_t *h)
  */
 size_t print_listint_safe(const listint_t *head)
 {
-    size_t num_nodes, index = 0;
+	size_t num_nodes, index = 0;
 
-    num_nodes = map_len(head);
+	num_nodes = map_len(head);
 
-    if (num_nodes == 0)
-    {
-        for (; head != NULL; num_nodes++)
-        {
-            printf("[%p] %d\n", (void *)head, head->n);
-            head = head->next;
-        }
-    }
-    else
-    {
-        for (index = 0; index < num_nodes; index++)
-        {
-            printf("[%p] %d\n", (void *)head, head->n);
-            head = head->next;
-        }
+	if (num_nodes == 0)
+	{
+		for (; head != NULL; num_nodes++)
+		{
+			printf("[%p] %d\n", (void *)head, head->n);
+			head = head->next;
+		}
+	}
+	else
+	{
+		for (index = 0; index < num_nodes; index++)
+		{
+			printf("[%p] %d\n", (void *)head, head->n);
+			head = head->next;
+		}
 
-        printf("-> [%p] %d\n", (void *)head, head->n);
-    }
+		printf("-> [%p] %d\n", (void *)head, head->n);
+	}
 
-    return (num_nodes);
+	return (num_nodes);
 }
