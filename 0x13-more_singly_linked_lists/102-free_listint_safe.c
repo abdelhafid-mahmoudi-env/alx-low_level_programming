@@ -1,35 +1,31 @@
 #include "lists.h"
-#include <stdlib.h>
 
 /**
- * looped_listint_count - Counts the number of unique nodes
- *                      in a looped listint_t linked list.
- * @head: A pointer to the head of the listint_t to check.
+ * free_listint_safe - Frees a listint_t list.
+ * @h: A pointer to a pointer to the head of the list.
  *
- * Return: If the list is not looped - 0.
- *         Otherwise - the number of unique nodes in the list.
+ * Return: The size of the list that was freed.
  */
 size_t free_listint_safe(listint_t **h)
 {
-	size_t count = 0;
-	listint_t *current = *h;
-	listint_t *next;
+	size_t node_count = 0;
+	listint_t *current, *next_node;
 
-	while (current)
+	if (h == NULL || *h == NULL)
+		return (0);
+
+	current = *h;
+	while (current != NULL)
 	{
-		count++;
-		next = current->next;
+		node_count++;
+		next_node = current->next;
 		free(current);
-		current = next;
+		current = next_node;
 
-		if (count > 50) /* Assuming a reasonable limit to prevent infinite loops */
-		{
-			*h = NULL;
-			return (count);
-		}
+		if (next_node >= current)
+			break;
 	}
 
 	*h = NULL;
-	return (count);
+	return (node_count);
 }
-
