@@ -14,42 +14,42 @@ size_t free_listint_safe(listint_t **h);
  */
 size_t random_function_name(listint_t *random_head_name)
 {
-    listint_t *random_tortoise, *random_hare;
-    size_t random_nodes = 1;
+	listint_t *random_tortoise, *random_hare;
+	size_t random_nodes = 1;
 
-    if (random_head_name == NULL || random_head_name->next == NULL)
-        return (0);
+	if (random_head_name == NULL || random_head_name->next == NULL)
+		return (0);
 
-    random_tortoise = random_head_name->next;
-    random_hare = (random_head_name->next)->next;
+	random_tortoise = random_head_name->next;
+	random_hare = (random_head_name->next)->next;
 
-    while (random_hare)
-    {
-        if (random_tortoise == random_hare)
-        {
-            random_tortoise = random_head_name;
-            while (random_tortoise != random_hare)
-            {
-                random_nodes++;
-                random_tortoise = random_tortoise->next;
-                random_hare = random_hare->next;
-            }
+	while (random_hare)
+	{
+		if (random_tortoise == random_hare)
+		{
+			random_tortoise = random_head_name;
+			while (random_tortoise != random_hare)
+			{
+				random_nodes++;
+				random_tortoise = random_tortoise->next;
+				random_hare = random_hare->next;
+			}
 
-            random_tortoise = random_tortoise->next;
-            while (random_tortoise != random_hare)
-            {
-                random_nodes++;
-                random_tortoise = random_tortoise->next;
-            }
+			random_tortoise = random_tortoise->next;
+			while (random_tortoise != random_hare)
+			{
+				random_nodes++;
+				random_tortoise = random_tortoise->next;
+			}
 
-            return (random_nodes);
-        }
+			return (random_nodes);
+		}
 
-        random_tortoise = random_tortoise->next;
-        random_hare = (random_hare->next)->next;
-    }
+		random_tortoise = random_tortoise->next;
+		random_hare = (random_hare->next)->next;
+	}
 
-    return (0);
+	return (0);
 }
 
 /**
@@ -62,34 +62,33 @@ size_t random_function_name(listint_t *random_head_name)
  */
 size_t free_listint_safe(listint_t **h)
 {
-    listint_t *random_tmp;
-    size_t random_nodes, random_index;
+	listint_t *random_tmp;
+	size_t random_nodes, random_index;
 
-    random_nodes = random_function_name(*h);
+	random_nodes = random_function_name(*h);
 
-    if (random_nodes == 0)
-    {
-        for (; h != NULL && *h != NULL; random_nodes++)
-        {
-            random_tmp = (*h)->next;
-            free(*h);
-            *h = random_tmp;
-        }
-    }
-    else
-    {
-        for (random_index = 0; random_index < random_nodes; random_index++)
-        {
-            random_tmp = (*h)->next;
-            free(*h);
-            *h = random_tmp;
-        }
+	if (random_nodes == 0)
+	{
+		for (; h != NULL && *h != NULL; random_nodes++)
+		{
+			random_tmp = (*h)->next;
+			free(*h);
+			*h = random_tmp;
+		}
+	}
+	else
+	{
+		for (random_index = 0; random_index < random_nodes; random_index++)
+		{
+			random_tmp = (*h)->next;
+			free(*h);
+			*h = random_tmp;
+		}
 
-        *h = NULL;
-    }
+		*h = NULL;
+	}
 
-    h = NULL;
+	h = NULL;
 
-    return (random_nodes);
+	return (random_nodes);
 }
-
