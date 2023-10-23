@@ -2,6 +2,54 @@
 #include <stdio.h>
 
 /**
+ * map_len - Counts the number of unique nodes
+ *           in a looped listint_t linked list.
+ * @h: A pointer to the head of the listint_t to check.
+ *
+ * Return: If the list is not looped - 0.
+ *         Otherwise - the number of unique nodes in the list.
+ */
+size_t map_len(const listint_t *h)
+{
+    const listint_t *slow, *fast;
+    size_t count = 1;
+
+    if (h == NULL || h->next == NULL)
+        return (0);
+
+    slow = h->next;
+    fast = (h->next)->next;
+
+    while (fast)
+    {
+        if (slow == fast)
+        {
+            slow = h;
+            while (slow != fast)
+            {
+                count++;
+                slow = slow->next;
+                fast = fast->next;
+            }
+
+            slow = slow->next;
+            while (slow != fast)
+            {
+                count++;
+                slow = slow->next;
+            }
+
+            return (count);
+        }
+
+        slow = slow->next;
+        fast = (fast->next)->next;
+    }
+
+    return (0);
+}
+
+/**
  * print_listint_safe - Prints a listint_t list safely.
  * @head: A pointer to the head of the listint_t list.
  *
@@ -9,29 +57,28 @@
  */
 size_t print_listint_safe(const listint_t *head)
 {
-    size_t node_count = 0;
-    const listint_t *current = head;
-    const listint_t *loop_node = NULL;
+    size_t num_nodes, index = 0;
 
-    while (current)
+    num_nodes = map_len(head);
+
+    if (num_nodes == 0)
     {
-        node_count++;
-        printf("[%p] %d\n", (void *)current, current->n);
-
-        if (current == current->next)
+        for (; head != NULL; num_nodes++)
         {
-            loop_node = current;
-            break;
+            printf("[%p] %d\n", (void *)head, head->n);
+            head = head->next;
+        }
+    }
+    else
+    {
+        for (index = 0; index < num_nodes; index++)
+        {
+            printf("[%p] %d\n", (void *)head, head->n);
+            head = head->next;
         }
 
-        current = current->next;
-
-        if (node_count > 2 && current == loop_node)
-            break;
+        printf("-> [%p] %d\n", (void *)head, head->n);
     }
 
-    if (loop_node)
-        printf("-> [%p] %d\n", (void *)current, current->n);
-
-    return node_count;
+    return (num_nodes);
 }
