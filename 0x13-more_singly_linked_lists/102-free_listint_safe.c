@@ -1,40 +1,30 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include "lists.h"
 
 /**
- * custom_free - Custom implementation of the free function.
- * @ptr: A pointer to the memory block to free.
- */
-void custom_free(void *ptr)
-{
-	(void)ptr;  /* This is a placeholder, you can define your custom free behavior here */
-}
-
-/**
- * free_listint_safe - Frees a listint_t list.
- * @h: A pointer to a pointer to the head of the list.
- *
- * Return: The size of the list that was freed.
+ * free_listint_safe - Frees a listint_t linked list safely
+ * @h: A pointer to a pointer to the head of the list
+ * Return: The size of the list that was freed
  */
 size_t free_listint_safe(listint_t **h)
 {
-	size_t node_count = 0;
-	listint_t *current, *next_node;
+    size_t count = 0;
+    listint_t *current, *next;
 
-	if (h == NULL || *h == NULL)
-		return (0);
+    current = *h;
+    while (current != NULL)
+    {
+        next = current->next;
+        free(current);
+        count++;
+        current = next;
+        if (current <= next)
+            break;
+    }
 
-	current = *h;
-	while (current != NULL)
-	{
-		node_count++;
-		next_node = current->next;
-		custom_free(current);
-		current = next_node;
+    *h = NULL;
 
-		if (next_node >= current)
-			break;
-	}
-
-	*h = NULL;
-	return (node_count);
+    return (count);
 }
+
