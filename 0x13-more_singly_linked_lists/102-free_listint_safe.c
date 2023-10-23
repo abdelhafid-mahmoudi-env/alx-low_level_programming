@@ -1,33 +1,52 @@
 #include "lists.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 /**
- * free_listint_safe - frees a listint_t list (can free lists with a loop)
- * @h: pointer to head of singly linked list
+ * free_listint_safe - function that frees a listint_t list.
+ * @h: pointer to pointer to the head of linked list.
  *
- * Return: the size of the list that was free’d
+ * This function can free lists with a loop.
+ * You should go through the list only once.
+ * The function sets the head to NULL.
+ *
+ * Return: the size of the list that was free’d. Otherwise 0.
  */
 
 size_t free_listint_safe(listint_t **h)
 {
-	listint_t *tmp = *h, *tmp2;
-	unsigned int count = 0;
+	listint_t *current;
+	listnode_t *nodes = NULL; /* stores address of nodes */
+	size_t count = 0;
 
-	if (tmp == 0 || h == 0)
+	if (h == NULL)
 		return (0);
 
-	tmp = *h;
-	while (tmp != 0)
+	/* while you have not encountered a loop */
+	while (!is_in_nodes(nodes, *h))
 	{
-		tmp2 = tmp;
-		tmp = tmp->next;
+		/* check if the malloc fails then exit */
+		if (!add_nodeptr(&nodes, *h))
+		{
+			free_listnode(nodes);
+			exit(98);
+		}
+		current = *h;
+		*h = (*h)->next;
+		free(current);
+		/* print address of current node and the value of field n */
+		/* cast it a void pointer in order to print the address */
+		/* printf("[%p] %d\n", (void *)head, head->n); */
+		/* count the nodes */
 		count++;
-
-		free(tmp2);
-		if (tmp2 <= tmp)
-			break;
 	}
+	/* if you encounter a loop */
+	if (*h != NULL)
+		*h = NULL;
 
-	*h = 0;
+	/* print where the loop starts */
+	/*	printf("-> [%p] %d\n", (void *)head, head->n); */
+	free_listnode(nodes);
+	/* return number of nodes */
 	return (count);
-}
-
+} 
