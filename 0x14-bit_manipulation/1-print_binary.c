@@ -6,8 +6,8 @@
  */
 void print_binary(unsigned long int n)
 {
-    if (n > 1)
-        print_binary(n >> 1);
-    _putchar((n & 1) + '0');
+	if (n > 1)
+		print_binary(n >> 1); /* Right shift n by 1 and call recursively */
+	_putchar((n & 1) + '0'); /* Print the last bit (LSB) as a character */
 }
 
