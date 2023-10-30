@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "main.h"
+#include <elf.h>
 
 #define ELF_MAGIC_SIZE 16
 
