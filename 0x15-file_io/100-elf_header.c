@@ -1,64 +1,83 @@
-#include <stdio.h>
 #include <elf.h>
-#include <fcntl.h>
-#include <unistd.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
-/**
- * main - Entry point
- * @argc: Number of arguments
- * @argv: Argument vector
- * Return: 0 on success, 98 otherwise
- */
-int main(int argc, char *argv[])
-{
-    int fd;
-    Elf64_Ehdr header;
+void checkElf(unsigned char *e_ident);
+void displayHeaderInfo(unsigned char *e_ident, unsigned int e_type, unsigned long int e_entry);
+void manageFile(int *fileDescriptor, char *filePath, Elf64_Ehdr **header);
+void closeAndExit(int fileDescriptor, Elf64_Ehdr *header, char *message);
 
-    if (argc != 2)
-    {
-        fprintf(stderr, "Usage: %s elf_filename\n", argv[0]);
-        exit(98);
+void checkElf(unsigned char *e_ident) {
+    for (int index = 0; index < 4; index++) {
+        if (e_ident[index] != 127 &&
+            e_ident[index] != 'E' &&
+            e_ident[index] != 'L' &&
+            e_ident[index] != 'F') {
+            dprintf(STDERR_FILENO, "Error: Not an ELF file\n");
+            exit(98);
+        }
     }
+}
 
-    fd = open(argv[1], O_RDONLY);
-    if (fd == -1)
-    {
-        fprintf(stderr, "Error opening file\n");
-        exit(98);
-    }
-
-    if (read(fd, &header, sizeof(header)) != sizeof(header))
-    {
-        fprintf(stderr, "Error reading ELF header\n");
-        close(fd);
-        exit(98);
-    }
-
-    if (header.e_ident[EI_MAG0] != ELFMAG0 ||
-        header.e_ident[EI_MAG1] != ELFMAG1 ||
-        header.e_ident[EI_MAG2] != ELFMAG2 ||
-        header.e_ident[EI_MAG3] != ELFMAG3)
-    {
-        fprintf(stderr, "Not an ELF file\n");
-        close(fd);
-        exit(98);
-    }
-
-    printf("ELF Header:\n");
+void displayHeaderInfo(unsigned char *e_ident, unsigned int e_type, unsigned long int e_entry) {
     printf("  Magic:   ");
-    for (int i = 0; i < EI_NIDENT; i++)
-        printf("%02x ", header.e_ident[i]);
-    printf("\n");
-    printf("  Class:                             %s\n", header.e_ident[EI_CLASS] == ELFCLASS64 ? "ELF64" : "ELF32");
-    printf("  Data:                              %s\n", header.e_ident[EI_DATA] == ELFDATA2LSB ? "2's complement, little endian" : "2's complement, big endian");
-    printf("  Version:                           %d (current)\n", header.e_ident[EI_VERSION]);
-    printf("  OS/ABI:                            UNIX - System V\n");
-    printf("  ABI Version:                       %d\n", header.e_ident[EI_OSABI]);
-    printf("  Type:                              %d\n", header.e_type);
-    printf("  Entry point address:               0x%lx\n", header.e_entry);
+    for (int index = 0; index < EI_NIDENT; index++) {
+        printf("%02x", e_ident[index]);
+        printf(index == EI_NIDENT - 1 ? "\n" : " ");
+    }
+}
 
-    close(fd);
-    return (0);
+void manageFile(int *fileDescriptor, char *filePath, Elf64_Ehdr **header) {
+    *fileDescriptor = open(filePath, O_RDONLY);
+    if (*fileDescriptor == -1) {
+        dprintf(STDERR_FILENO, "Error: Can't read file %s\n", filePath);
+        exit(98);
+    }
+
+    *header = malloc(sizeof(Elf64_Ehdr));
+    if (*header == NULL) {
+        closeAndExit(*fileDescriptor, NULL, "Error: Can't read file");
+    }
+
+    int bytesRead = read(*fileDescriptor, *header, sizeof(Elf64_Ehdr));
+    if (bytesRead == -1) {
+        closeAndExit(*fileDescriptor, *header, "Error: No such file");
+    }
+}
+
+void closeAndExit(int fileDescriptor, Elf64_Ehdr *header, char *message) {
+    if (header) {
+        free(header);
+    }
+    if (close(fileDescriptor) == -1) {
+        dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", fileDescriptor);
+    }
+    if (message) {
+        dprintf(STDERR_FILENO, "Error: %s\n", message);
+    }
+    exit(98);
+}
+
+int main(int argc, char *argv[]) {
+    Elf64_Ehdr *header;
+    int fileDescriptor;
+
+    if (argc != 2) {
+        dprintf(STDERR_FILENO, "Usage: %s <elf_file>\n", argv[0]);
+        exit(98);
+    }
+
+    manageFile(&fileDescriptor, argv[1], &header);
+
+    checkElf(header->e_ident);
+    printf("ELF Header:\n");
+    displayHeaderInfo(header->e_ident, header->e_type, header->e_entry);
+
+    closeAndExit(fileDescriptor, header, NULL);
+    return 0;
 }
 
