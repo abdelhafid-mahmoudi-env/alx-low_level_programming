@@ -1,8 +1,10 @@
-#include <elf.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <fcntl.h>
+#include <stdio.h>
+#include <elf.h>
+#include <stdlib.h>
 
 void elfCheckElf(unsigned char *e_ident);
 void elfDisplayAll(Elf64_Ehdr *header);
