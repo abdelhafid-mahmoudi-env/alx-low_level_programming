@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include "main.h"
 
 void elfCheckElf(unsigned char *e_ident);
 void elfDisplayAll(Elf64_Ehdr *header);
@@ -11,18 +10,14 @@ void elfCloseFile(int fileDescriptor);
 int elfOpenFile(char *filename);
 Elf64_Ehdr *elfReadHeader(int fileDescriptor);
 
-/**
- * elfCheckElf - Checks if the file is an ELF file
- * @e_ident: The identifier of the ELF file
- */
 void elfCheckElf(unsigned char *e_ident)
 {
-    if (e_ident[0] != 0x7f || e_ident[1] != 'E' ||
-        e_ident[2] != 'L' || e_ident[3] != 'F')
-    {
-        dprintf(STDERR_FILENO, "Error: Not an ELF file\n");
-        exit(98);
-    }
+	if (e_ident[0] != 0x7f || e_ident[1] != 'E' ||
+	    e_ident[2] != 'L' || e_ident[3] != 'F')
+	{
+		dprintf(STDERR_FILENO, "Error: Not an ELF file\n");
+		exit(98);
+	}
 }
 
 /**
@@ -153,20 +148,20 @@ void elfCloseFile(int fileDescriptor)
  */
 int main(int argc, char *argv[])
 {
-    int fileDescriptor;
-    Elf64_Ehdr *header;
+	int fileDescriptor;
+	Elf64_Ehdr *header;
 
-    if (argc != 2)
-    {
-        dprintf(STDERR_FILENO, "Usage: %s <elf_file>\n", argv[0]);
-        exit(98);
-    }
+	if (argc != 2)
+	{
+		dprintf(STDERR_FILENO, "Usage: %s <elf_file>\n", argv[0]);
+		return (98);
+	}
 
-    fileDescriptor = elfOpenFile(argv[1]);
-    header = elfReadHeader(fileDescriptor);
-    elfCheckElf(header->e_ident);
-    elfDisplayAll(header);
-    free(header);
-    elfCloseFile(fileDescriptor);
-    return 0;
+	fileDescriptor = elfOpenFile(argv[1]);
+	header = elfReadHeader(fileDescriptor);
+	elfCheckElf(header->e_ident);
+	elfDisplayAll(header);
+	free(header);
+	elfCloseFile(fileDescriptor);
+	return (0);
 }
