@@ -7,10 +7,10 @@
 #include <sys/stat.h>
 
 void elfCheckElf(unsigned char *e_ident);
-void elfDisplayAll(unsigned char *e_ident, unsigned int e_type, unsigned long int e_entry);
+void elfDisplayAll(Elf64_Ehdr *header);
 void elfCloseFile(int fileDescriptor);
 int elfOpenFile(char *filename);
-unsigned char *elfReadIdent(int fileDescriptor);
+Elf64_Ehdr *elfReadHeader(int fileDescriptor);
 
 /**
  * elfCheckElf - checks if a file is an ELF file
@@ -18,17 +18,10 @@ unsigned char *elfReadIdent(int fileDescriptor);
  */
 void elfCheckElf(unsigned char *e_ident)
 {
-    int index;
-    for (index = 0; index < 4; index++)
+    if (e_ident[0] != 0x7f || e_ident[1] != 'E' || e_ident[2] != 'L' || e_ident[3] != 'F')
     {
-        if (e_ident[index] != 127 &&
-            e_ident[index] != 'E' &&
-            e_ident[index] != 'L' &&
-            e_ident[index] != 'F')
-        {
-            dprintf(STDERR_FILENO, "Error: Not an ELF file\n");
-            exit(98);
-        }
+        dprintf(STDERR_FILENO, "Error: Not an ELF file\n");
+        exit(98);
     }
 }
 
@@ -36,26 +29,18 @@ void elfCheckElf(unsigned char *e_ident)
  * elfDisplayAll - display all relevant ELF header information
  * @e_ident: ELF identification bytes
  */
-void elfDisplayAll(unsigned char *e_ident)
+void elfDisplayAll(Elf64_Ehdr *header)
 {
-    int index;
-
     printf("  Magic:   ");
-    for (index = 0; index < EI_NIDENT; index++)
+    for (int index = 0; index < EI_NIDENT; index++)
     {
-        printf("%02x", e_ident[index]);
-        if (index == EI_NIDENT - 1)
-            printf("\n");
-        else
-            printf(" ");
+        printf("%02x ", header->e_ident[index]);
     }
+    printf("\n");
 
     printf("  Class:                             ");
-    switch (e_ident[EI_CLASS])
+    switch (header->e_ident[EI_CLASS])
     {
-    case ELFCLASSNONE:
-        printf("none\n");
-        break;
     case ELFCLASS32:
         printf("ELF32\n");
         break;
@@ -63,15 +48,13 @@ void elfDisplayAll(unsigned char *e_ident)
         printf("ELF64\n");
         break;
     default:
-        printf("<unknown: %x>\n", e_ident[EI_CLASS]);
+        printf("<unknown: %x>\n", header->e_ident[EI_CLASS]);
+        break;
     }
 
     printf("  Data:                              ");
-    switch (e_ident[EI_DATA])
+    switch (header->e_ident[EI_DATA])
     {
-    case ELFDATANONE:
-        printf("none\n");
-        break;
     case ELFDATA2LSB:
         printf("2's complement, little endian\n");
         break;
@@ -79,21 +62,13 @@ void elfDisplayAll(unsigned char *e_ident)
         printf("2's complement, big endian\n");
         break;
     default:
-        printf("<unknown: %x>\n", e_ident[EI_DATA]);
+        printf("<unknown: %x>\n", header->e_ident[EI_DATA]);
+        break;
     }
 
-    printf("  Version:                           %d", e_ident[EI_VERSION]);
-    if (e_ident[EI_VERSION] == EV_CURRENT)
-    {
-        printf(" (current)\n");
-    }
-    else
-    {
-        printf("\n");
-    }
-
+    printf("  Version:                           %d\n", header->e_ident[EI_VERSION]);
     printf("  OS/ABI:                            ");
-    switch (e_ident[EI_OSABI])
+    switch (header->e_ident[EI_OSABI])
     {
     case ELFOSABI_NONE:
         printf("UNIX - System V\n");
@@ -126,10 +101,13 @@ void elfDisplayAll(unsigned char *e_ident)
         printf("Standalone App\n");
         break;
     default:
-        printf("<unknown: %x>\n", e_ident[EI_OSABI]);
+        printf("<unknown: %x>\n", header->e_ident[EI_OSABI]);
+        break;
     }
 
-    printf("  ABI Version:                       %d\n", e_ident[EI_ABIVERSION]);
+    printf("  ABI Version:                       %d\n", header->e_ident[EI_ABIVERSION]);
+    printf("  Type:                              %d\n", header->e_type);
+    printf("  Entry point address:               %lx\n", header->e_entry);
 }
 
 /**
@@ -152,13 +130,13 @@ void elfCloseFile(int fileDescriptor)
  */
 int elfOpenFile(char *filename)
 {
-    int fileDescriptor = open(filename, O_RDONLY);
-    if (fileDescriptor == -1)
+    int fd = open(filename, O_RDONLY);
+    if (fd == -1)
     {
         dprintf(STDERR_FILENO, "Error: Can't read file %s\n", filename);
         exit(98);
     }
-    return fileDescriptor;
+    return fd;
 }
 
 /**
@@ -166,32 +144,23 @@ int elfOpenFile(char *filename)
  * @fileDescriptor: file descriptor to read from
  * Return: pointer to ELF identification bytes
  */
-unsigned char *elfReadIdent(int fileDescriptor)
+Elf64_Ehdr *elfReadHeader(int fileDescriptor)
 {
-    unsigned char *e_ident = malloc(EI_NIDENT);
-    if (e_ident == NULL)
+    Elf64_Ehdr *header = malloc(sizeof(Elf64_Ehdr));
+    if (!header)
     {
-        dprintf(STDERR_FILENO, "Error: Can't allocate memory for ELF identification\n");
+        dprintf(STDERR_FILENO, "Error: Can't allocate memory for ELF header\n");
         exit(98);
     }
-
-    int bytesRead = read(fileDescriptor, e_ident, EI_NIDENT);
-    if (bytesRead == -1)
+    if (read(fileDescriptor, header, sizeof(Elf64_Ehdr)) != sizeof(Elf64_Ehdr))
     {
-        free(e_ident);
-        dprintf(STDERR_FILENO, "Error reading ELF identification\n");
+        free(header);
+        dprintf(STDERR_FILENO, "Error reading ELF header\n");
         exit(98);
     }
-
-    return (e_ident);
+    return header;
 }
 
-/**
- * main - Entry point of the program
- * @argc: Argument count
- * @argv: Array of arguments
- * Return: 0 on success, 98 on error
- */
 int main(int argc, char *argv[])
 {
     if (argc != 2)
@@ -201,13 +170,13 @@ int main(int argc, char *argv[])
     }
 
     int fileDescriptor = elfOpenFile(argv[1]);
-    unsigned char *e_ident = elfReadIdent(fileDescriptor);
+    Elf64_Ehdr *header = elfReadHeader(fileDescriptor);
 
-    elfCheckElf(e_ident);
+    elfCheckElf(header->e_ident);
     printf("ELF Header:\n");
-    elfDisplayAll(e_ident, 0, 0);
+    elfDisplayAll(header);
 
-    free(e_ident);
+    free(header);
     elfCloseFile(fileDescriptor);
-    return (0);
+    return 0;
 }
