@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include "main.h"
 
 void elfCheckElf(unsigned char *e_ident);
 void elfDisplayAll(Elf64_Ehdr *header);
