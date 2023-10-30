@@ -2,9 +2,19 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <elf.h>
-#include <string.h>
-#include <error.h>
+#include "main.h"
+
+#define ELF_MAGIC_SIZE 16
+
+/**
+ * print_error_and_exit - Print an error message to stderr and exit with status code 98.
+ * @message: The error message to print.
+ */
+void print_error_and_exit(const char *message)
+{
+    dprintf(2, "%s\n", message);
+    exit(98);
+}
 
 /**
  * print_elf_header - Print the ELF header information.
@@ -12,65 +22,100 @@
  */
 void print_elf_header(Elf64_Ehdr *header)
 {
+    int i;
+
     printf("ELF Header:\n");
-    printf("  Magic:   %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
-           header->e_ident[EI_MAG0], header->e_ident[EI_MAG1], header->e_ident[EI_MAG2], header->e_ident[EI_MAG3],
-           header->e_ident[EI_MAG4], header->e_ident[EI_MAG5], header->e_ident[EI_MAG6], header->e_ident[EI_MAG7],
-           header->e_ident[EI_MAG8], header->e_ident[EI_MAG9], header->e_ident[EI_MAG10], header->e_ident[EI_MAG11],
-           header->e_ident[EI_MAG12], header->e_ident[EI_MAG13], header->e_ident[EI_MAG14], header->e_ident[EI_MAG15]);
-    printf("  Class:                             %s\n", header->e_ident[EI_CLASS] == ELFCLASS32 ? "ELF32" : "ELF64");
-    printf("  Data:                              %s\n", header->e_ident[EI_DATA] == ELFDATA2LSB ? "2's complement, little endian" : "2's complement, big endian");
+    printf("  Magic:   ");
+    for (i = 0; i < ELF_MAGIC_SIZE; i++)
+        printf("%02x ", header->e_ident[i]);
+    printf("\n");
+    printf("  Class:                             ELF%d\n", header->e_ident[EI_CLASS]);
+    printf("  Data:                              2's complement, %s endian\n", (header->e_ident[EI_DATA] == ELFDATA2LSB) ? "little" : "big");
     printf("  Version:                           %d (current)\n", header->e_ident[EI_VERSION]);
-    printf("  OS/ABI:                            %s\n", header->e_ident[EI_OSABI] == ELFOSABI_SYSV ? "UNIX - System V" : "Other");
+    printf("  OS/ABI:                            ");
+    switch (header->e_ident[EI_OSABI])
+    {
+        case ELFOSABI_SYSV:
+            printf("UNIX - System V\n");
+            break;
+        case ELFOSABI_HPUX:
+            printf("HP-UX\n");
+            break;
+        case ELFOSABI_NETBSD:
+            printf("NetBSD\n");
+            break;
+        case ELFOSABI_LINUX:
+            printf("Linux\n");
+            break;
+        case ELFOSABI_SOLARIS:
+            printf("Solaris\n");
+            break;
+        case ELFOSABI_IRIX:
+            printf("IRIX\n");
+            break;
+        case ELFOSABI_FREEBSD:
+            printf("FreeBSD\n");
+            break;
+        case ELFOSABI_TRU64:
+            printf("Tru64\n");
+            break;
+        case ELFOSABI_ARM:
+            printf("ARM\n");
+            break;
+        case ELFOSABI_STANDALONE:
+            printf("Standalone (embedded) application\n");
+            break;
+        default:
+            printf("<unknown: %d>\n", header->e_ident[EI_OSABI]);
+            break;
+    }
     printf("  ABI Version:                       %d\n", header->e_ident[EI_ABIVERSION]);
-    printf("  Type:                              %s\n", header->e_type == ET_EXEC ? "EXEC (Executable file)" : "Other");
-    printf("  Entry point address:               0x%lx\n", (unsigned long)header->e_entry);
+    printf("  Type:                              ");
+    switch (header->e_type)
+    {
+        case ET_NONE:
+            printf("NONE (Unknown type)\n");
+            break;
+        case ET_REL:
+            printf("REL (Relocatable file)\n");
+            break;
+        case ET_EXEC:
+            printf("EXEC (Executable file)\n");
+            break;
+        case ET_DYN:
+            printf("DYN (Shared object file)\n");
+            break;
+        case ET_CORE:
+            printf("CORE (Core file)\n");
+            break;
+        default:
+            printf("<unknown: %d>\n", header->e_type);
+            break;
+    }
+    printf("  Entry point address:               0x%lx\n", header->e_entry);
 }
 
-/**
- * main - Entry point of the program.
- * @ac: Argument count.
- * @av: Argument vector.
- * Return: 0 on success, or the exit code on failure.
- */
-int main(int ac, char **av)
+int main(int argc, char **argv)
 {
     int fd;
-    Elf64_Ehdr header;
+    Elf64_Ehdr elf_header;
 
-    if (ac != 2)
-    {
-        dprintf(STDERR_FILENO, "Usage: %s elf_filename\n", av[0]);
-        return (EXIT_FAILURE);
-    }
+    if (argc != 2)
+        print_error_and_exit("Usage: elf_header elf_filename");
 
-    fd = open(av[1], O_RDONLY);
+    fd = open(argv[1], O_RDONLY);
     if (fd == -1)
-    {
-        dprintf(STDERR_FILENO, "Error: Can't open file %s\n", av[1]);
-        return (98);
-    }
+        print_error_and_exit("Error: Can't open file");
 
-    if (read(fd, &header, sizeof(header)) != sizeof(header))
-    {
-        dprintf(STDERR_FILENO, "Error: Can't read file %s\n", av[1]);
-        close(fd);
-        return (98);
-    }
+    if (read(fd, &elf_header, sizeof(elf_header)) != sizeof(elf_header))
+        print_error_and_exit("Error: Can't read file");
+
+    if (lseek(fd, 0, SEEK_SET) == -1)
+        print_error_and_exit("Error: Can't reset file offset");
+
+    print_elf_header(&elf_header);
 
     close(fd);
-
-    if (header.e_ident[EI_MAG0] != ELFMAG0 ||
-        header.e_ident[EI_MAG1] != ELFMAG1 ||
-        header.e_ident[EI_MAG2] != ELFMAG2 ||
-        header.e_ident[EI_MAG3] != ELFMAG3)
-    {
-        dprintf(STDERR_FILENO, "Error: Not an ELF file\n");
-        return (98);
-    }
-
-    print_elf_header(&header);
-
-    return (EXIT_SUCCESS);
+    return (0);
 }
 
