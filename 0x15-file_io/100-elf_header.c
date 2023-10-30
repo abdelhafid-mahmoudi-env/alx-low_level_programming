@@ -6,13 +6,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void elfCheckElf(unsigned char *e_ident);
-void elfDisplayAll(Elf64_Ehdr *header);
-void elfCloseFile(int fileDescriptor);
-int elfOpenFile(char *filename);
-Elf64_Ehdr *elfReadHeader(int fileDescriptor);
+void check_elf(unsigned char *e_ident);
+void print_magic(unsigned char *e_ident);
+void print_class(unsigned char *e_ident);
+void print_data(unsigned char *e_ident);
+void print_version(unsigned char *e_ident);
+void print_abi(unsigned char *e_ident);
+void print_osabi(unsigned char *e_ident);
+void print_type(unsigned int e_type, unsigned char *e_ident);
+void print_entry(unsigned long int e_entry, unsigned char *e_ident);
+void close_elf(int elf);
 
-void elfCheckElf(unsigned char *e_ident) {
+/**
+ * check_elf - will examine if a file is an ELF file
+ * @e_ident: this is a variable for  an array containing the ELF,
+ * entrancing numbers
+ *
+ * Description: If the file is not an ELF file, or on error,
+ * exit with status code 98
+ */
+void check_elf(unsigned char *e_ident)
+{
 	int index;
 
 	for (index = 0; index < 4; index++)
@@ -232,9 +246,64 @@ void print_entry(unsigned long int e_entry, unsigned char *e_ident)
 		printf("%#lx\n", e_entry);
 }
 
-void elfDisplayAll(Elf64_Ehdr *header) {
-  printf("ELF Header:\n");
-  print_magic(header->e_ident);
+/**
+ * close_elf - this will cloes an ELF file
+ * @el: this is the description of the ELF file
+ *
+ * Description: if file is unable to cloes then exit with status code 98
+ */
+void close_elf(int elf)
+{
+	if (close(elf) == -1)
+	{
+		dprintf(STDERR_FILENO,
+			"Error: Can't close fd %d\n", elf);
+		exit(98);
+	}
+}
+
+/**
+ * main - presents the information held in the,
+ * ELF header at the start of an ELF file
+ * @argc: the amount fo arguments that will be provided to the program
+ * @argv: this will be an array of variables for the arguments
+ *
+ * Return: 0 if success.
+ *
+ * Description: If the file is not an ELF file, or on error, 
+ * exit with status code 98, 
+ * and display a comprehensive error message to stderr
+ */
+int main(int __attribute__((__unused__)) argc, char *argv[])
+{
+	Elf64_Ehdr *header;
+	int o, r;
+
+	o = open(argv[1], O_RDONLY);
+	if (o == -1)
+	{
+		dprintf(STDERR_FILENO, "Error: Can't read file %s\n", argv[1]);
+		exit(98);
+	}
+	header = malloc(sizeof(Elf64_Ehdr));
+	if (header == NULL)
+	{
+		close_elf(o);
+		dprintf(STDERR_FILENO, "Error: Can't read file %s\n", argv[1]);
+		exit(98);
+	}
+	r = read(o, header, sizeof(Elf64_Ehdr));
+	if (r == -1)
+	{
+		free(header);
+		close_elf(o);
+		dprintf(STDERR_FILENO, "Error: `%s`: No such file\n", argv[1]);
+		exit(98);
+	}
+
+	check_elf(header->e_ident);
+	printf("ELF Header:\n");
+	print_magic(header->e_ident);
 	print_class(header->e_ident);
 	print_data(header->e_ident);
 	print_version(header->e_ident);
@@ -242,53 +311,8 @@ void elfDisplayAll(Elf64_Ehdr *header) {
 	print_abi(header->e_ident);
 	print_type(header->e_type, header->e_ident);
 	print_entry(header->e_entry, header->e_ident);
-}
 
-int elfOpenFile(char *filename) {
-    int fd = open(filename, O_RDONLY);
-    if (fd == -1) {
-        dprintf(STDERR_FILENO, "Error: Can't read file %s\n", filename);
-        exit(98);
-    }
-    return fd;
-}
-
-Elf64_Ehdr *elfReadHeader(int fileDescriptor) {
-    Elf64_Ehdr *header = malloc(sizeof(Elf64_Ehdr));
-    if (!header) {
-        dprintf(STDERR_FILENO, "Error: Can't allocate memory for ELF header\n");
-        exit(98);
-    }
-    if (read(fileDescriptor, header, sizeof(Elf64_Ehdr)) != sizeof(Elf64_Ehdr)) {
-        free(header);
-        dprintf(STDERR_FILENO, "Error reading ELF header\n");
-        exit(98);
-    }
-    return header;
-}
-
-void elfCloseFile(int fileDescriptor) {
-    if (close(fileDescriptor) == -1) {
-        dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", fileDescriptor);
-        exit(98);
-    }
-}
-
-int main(int argc, char *argv[]) {
-    int fileDescriptor;
-    Elf64_Ehdr *header;
-    if (argc != 2) {
-        dprintf(STDERR_FILENO, "Usage: %s <elf_file>\n", argv[0]);
-        exit(98);
-    }
-
-    fileDescriptor = elfOpenFile(argv[1]);
-    header = elfReadHeader(fileDescriptor);
-
-    elfCheckElf(header->e_ident);
-    elfDisplayAll(header);
-
-    free(header);
-    elfCloseFile(fileDescriptor);
-    return 0;
+	free(header);
+	close_elf(o);
+	return (0);
 }
