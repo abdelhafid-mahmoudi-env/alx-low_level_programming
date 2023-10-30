@@ -40,9 +40,10 @@ const char *getOSABI(int osabi) {
 }
 
 void elfDisplayAll(Elf64_Ehdr *header) {
+	int index;	
     printf("ELF Header:\n");
     printf("  Magic:   ");
-    for (int index = 0; index < EI_NIDENT; index++) {
+    for (index = 0; index < EI_NIDENT; index++) {
         printf("%02x ", header->e_ident[index]);
     }
     printf("\n");
@@ -91,13 +92,15 @@ void elfCloseFile(int fileDescriptor) {
 }
 
 int main(int argc, char *argv[]) {
+    int fileDescriptor;
+    Elf64_Ehdr *header;
     if (argc != 2) {
         dprintf(STDERR_FILENO, "Usage: %s <elf_file>\n", argv[0]);
         exit(98);
     }
 
-    int fileDescriptor = elfOpenFile(argv[1]);
-    Elf64_Ehdr *header = elfReadHeader(fileDescriptor);
+    fileDescriptor = elfOpenFile(argv[1]);
+    header = elfReadHeader(fileDescriptor);
 
     elfCheckElf(header->e_ident);
     elfDisplayAll(header);
