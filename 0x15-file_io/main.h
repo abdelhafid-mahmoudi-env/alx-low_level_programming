@@ -15,6 +15,16 @@ int create_file(const char *filename, char *text_content);
 int append_text_to_file(const char *filename, char *text_content);
 int _putchar(char c);
 int _strlen(char *str);
+void checkElf(unsigned char *e_ident);
+void displayMagic(unsigned char *e_ident);
+void displayClass(unsigned char *e_ident);
+void displayData(unsigned char *e_ident);
+void displayVersion(unsigned char *e_ident);
+void displayAbi(unsigned char *e_ident);
+void displayOsAbi(unsigned char *e_ident);
+void displayType(unsigned int e_type, unsigned char *e_ident);
+void displayEntryPoint(unsigned long int e_entry, unsigned char *e_ident);
+void closeFile(int fileDescriptor);
 
 #endif /* MAIN_H */
 
