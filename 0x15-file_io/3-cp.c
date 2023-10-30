@@ -1,112 +1,72 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include "main.h"
-
-#define BUFFER_SIZE 1024
+#include <stdio.h>
 
 /**
- * check_arguments - Checks the command-line arguments.
- * @argc: The number of command-line arguments.
- * @argv: An array of strings containing the arguments.
+ * error_file - checks if files can be opened.
+ * @file_from: file_from.
+ * @file_to: file_to.
+ * @argv: arguments vector.
+ * Return: no return.
  */
-void check_arguments(int argc, char **argv)
+void error_file(int file_from, int file_to, char *argv[])
 {
+	if (file_from == -1)
+	{
+		dprintf(STDERR_FILENO, "Error: Can't read from file %s\n", argv[1]);
+		exit(98);
+	}
+	if (file_to == -1)
+	{
+		dprintf(STDERR_FILENO, "Error: Can't write to %s\n", argv[2]);
+		exit(99);
+	}
+}
+
+/**
+ * main - check the code for Holberton School students.
+ * @argc: number of arguments.
+ * @argv: arguments vector.
+ * Return: Always 0.
+ */
+int main(int argc, char *argv[])
+{
+	int file_from, file_to, err_close;
+	ssize_t nchars, nwr;
+	char buf[1024];
+
 	if (argc != 3)
 	{
-		dprintf(STDERR_FILENO, "Usage: cp file_from file_to\n");
+		dprintf(STDERR_FILENO, "%s\n", "Usage: cp file_from file_to");
 		exit(97);
 	}
-}
 
-/**
- * open_file - Opens a file with the specified mode and permissions.
- * @filename: The name of the file to open.
- * @mode: The mode to open the file (e.g., O_RDONLY, O_WRONLY).
- * @permissions: The file permissions to set.
- * @error_code: The error code to exit with if opening fails.
- * @read_mode: If true, set the file descriptor
- * for reading; otherwise, for writing.
- * @error_message: The error message to print if opening fails.
- *
- * Return: The file descriptor on success;
- * exits with an error code on failure.
- */
-int open_file(
-		const char *filename,
-		int mode, mode_t permissions,
-		int error_code,
-		int read_mode,
-		const char *error_message
-		)
-{
-	int fd = -1;
+	file_from = open(argv[1], O_RDONLY);
+	file_to = open(argv[2], O_CREAT | O_WRONLY | O_TRUNC | O_APPEND, 0664);
+	error_file(file_from, file_to, argv);
 
-	fd = open(filename, mode, permissions);
-	if (fd == -1)
+	nchars = 1024;
+	while (nchars == 1024)
 	{
-		dprintf(STDERR_FILENO, "Error: %s %s\n", error_message, filename);
-		exit(error_code);
+		nchars = read(file_from, buf, 1024);
+		if (nchars == -1)
+			error_file(-1, 0, argv);
+		nwr = write(file_to, buf, nchars);
+		if (nwr == -1)
+			error_file(0, -1, argv);
 	}
 
-	if (read_mode)
+	err_close = close(file_from);
+	if (err_close == -1)
 	{
-		if (read(fd, NULL, 0) == -1)
-		{
-			dprintf(STDERR_FILENO, "Error: Can't read from file %s\n", filename);
-			close(fd);
-			exit(98);
-		}
-	}
-	else
-	{
-		if (write(fd, NULL, 0) == -1)
-		{
-			dprintf(STDERR_FILENO, "Error: Can't write to %s\n", filename);
-			close(fd);
-			exit(99);
-		}
+		dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", file_from);
+		exit(100);
 	}
 
-	return (fd);
-}
-
-/**
- * main - Copies the content of one file to another.
- * @argc: The number of command-line arguments.
- * @argv: An array of strings containing the arguments.
- *
- * Return: 0 on success, or exit with an error code.
- */
-int main(int argc, char **argv)
-{
-	int fd_from, fd_to;
-	char buffer[BUFFER_SIZE];
-	int bytes_read, bytes_written;
-
-	check_arguments(argc, argv);
-
-	fd_from = open_file(argv[1], O_RDONLY, 0, 98, 1, "Can't read from file");
-	fd_to = open_file(
-			argv[2],
-			O_WRONLY | O_CREAT | O_TRUNC,
-			0664, 99, 0, "Can't write to");
-
-	while ((bytes_read = read(fd_from, buffer, BUFFER_SIZE)) > 0)
+	err_close = close(file_to);
+	if (err_close == -1)
 	{
-		bytes_written = write(fd_to, buffer, bytes_read);
-		if (bytes_written != bytes_read)
-		{
-			dprintf(STDERR_FILENO, "Error: Can't write to %s\n", argv[2]);
-			close(fd_from);
-			close(fd_to);
-			exit(99);
-		}
+		dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", file_from);
+		exit(100);
 	}
-
-	close(fd_from);
-	close(fd_to);
-
 	return (0);
 }
