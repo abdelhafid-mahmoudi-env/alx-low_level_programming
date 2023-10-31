@@ -1,3 +1,8 @@
+/*
+ * File: 100-elf_header.c
+ * Auth: Brennan D Baraban
+ */
+
 #include <elf.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -7,10 +12,13 @@
 #include <stdlib.h>
 
 void check_elf(unsigned char *e_ident);
-void magicEtf(unsigned char *e_ident);
-void classEtf(unsigned char *e_ident);
-void osabiEtf(unsigned char *e_ident);
-void typeEtf(unsigned int e_type, unsigned char *e_ident);
+void print_magic(unsigned char *e_ident);
+void print_class(unsigned char *e_ident);
+void print_data(unsigned char *e_ident);
+void print_version(unsigned char *e_ident);
+void print_abi(unsigned char *e_ident);
+void print_osabi(unsigned char *e_ident);
+void print_type_entry(unsigned int e_type, unsigned char *e_ident);
 void close_elf(int elf);
 
 /**
@@ -37,19 +45,21 @@ void check_elf(unsigned char *e_ident)
 }
 
 /**
- * magicEtf - Prints the magic numbers of an ELF header.
+ * print_magic - Prints the magic numbers of an ELF header.
  * @e_ident: A pointer to an array containing the ELF magic numbers.
  *
  * Description: Magic numbers are separated by spaces.
  */
-void magicEtf(unsigned char *e_ident)
+void print_magic(unsigned char *e_ident)
 {
 	int index;
 
 	printf("  Magic:   ");
+
 	for (index = 0; index < EI_NIDENT; index++)
 	{
 		printf("%02x", e_ident[index]);
+
 		if (index == EI_NIDENT - 1)
 			printf("\n");
 		else
@@ -58,12 +68,13 @@ void magicEtf(unsigned char *e_ident)
 }
 
 /**
- * classEtf - Prints the class of an ELF header.
+ * print_class - Prints the class of an ELF header.
  * @e_ident: A pointer to an array containing the ELF class.
  */
-void classEtf(unsigned char *e_ident)
+void print_class(unsigned char *e_ident)
 {
 	printf("  Class:                             ");
+
 	switch (e_ident[EI_CLASS])
 	{
 	case ELFCLASSNONE:
@@ -78,7 +89,16 @@ void classEtf(unsigned char *e_ident)
 	default:
 		printf("<unknown: %x>\n", e_ident[EI_CLASS]);
 	}
-		printf("  Data:                              ");
+}
+
+/**
+ * print_data - Prints the data of an ELF header.
+ * @e_ident: A pointer to an array containing the ELF class.
+ */
+void print_data(unsigned char *e_ident)
+{
+	printf("  Data:                              ");
+
 	switch (e_ident[EI_DATA])
 	{
 	case ELFDATANONE:
@@ -93,8 +113,17 @@ void classEtf(unsigned char *e_ident)
 	default:
 		printf("<unknown: %x>\n", e_ident[EI_CLASS]);
 	}
-		printf("  Version:                           %d",
+}
+
+/**
+ * print_version - Prints the version of an ELF header.
+ * @e_ident: A pointer to an array containing the ELF version.
+ */
+void print_version(unsigned char *e_ident)
+{
+	printf("  Version:                           %d",
 	       e_ident[EI_VERSION]);
+
 	switch (e_ident[EI_VERSION])
 	{
 	case EV_CURRENT:
@@ -107,10 +136,10 @@ void classEtf(unsigned char *e_ident)
 }
 
 /**
- * osabiEtf - Prints the OS/ABI of an ELF header.
+ * print_osabi - Prints the OS/ABI of an ELF header.
  * @e_ident: A pointer to an array containing the ELF version.
  */
-void osabiEtf(unsigned char *e_ident)
+void print_osabi(unsigned char *e_ident)
 {
 	printf("  OS/ABI:                            ");
 
@@ -149,16 +178,24 @@ void osabiEtf(unsigned char *e_ident)
 	default:
 		printf("<unknown: %x>\n", e_ident[EI_OSABI]);
 	}
+}
+
+/**
+ * print_abi - Prints the ABI version of an ELF header.
+ * @e_ident: A pointer to an array containing the ELF ABI version.
+ */
+void print_abi(unsigned char *e_ident)
+{
 	printf("  ABI Version:                       %d\n",
 	       e_ident[EI_ABIVERSION]);
 }
 
 /**
- * typeEtf - Prints the type of an ELF header.
+ * print_type - Prints the type of an ELF header.
  * @e_type: The ELF type.
  * @e_ident: A pointer to an array containing the ELF class.
  */
-void typeEtf(unsigned int e_type, unsigned char *e_ident)
+void print_type_entry(unsigned int e_type, unsigned char *e_ident)
 {
 	if (e_ident[EI_DATA] == ELFDATA2MSB)
 		e_type >>= 8;
@@ -185,15 +222,19 @@ void typeEtf(unsigned int e_type, unsigned char *e_ident)
 	default:
 		printf("<unknown: %x>\n", e_type);
 	}
-	printf("  Entry point address:               ");
+
+		printf("  Entry point address:               ");
+
 	if (e_ident[EI_DATA] == ELFDATA2MSB)
 	{
 		e_entry = ((e_entry << 8) & 0xFF00FF00) |
 			  ((e_entry >> 8) & 0xFF00FF);
 		e_entry = (e_entry << 16) | (e_entry >> 16);
 	}
+
 	if (e_ident[EI_CLASS] == ELFCLASS32)
 		printf("%#x\n", (unsigned int)e_entry);
+
 	else
 		printf("%#lx\n", e_entry);
 }
@@ -254,10 +295,13 @@ int main(int __attribute__((__unused__)) argc, char *argv[])
 
 	check_elf(header->e_ident);
 	printf("ELF Header:\n");
-	magicEtf(header->e_ident);
-	classEtf(header->e_ident);
-	osabiEtf(header->e_ident);
-	typeEtf(header->e_type, header->e_ident);
+	print_magic(header->e_ident);
+	print_class(header->e_ident);
+	print_data(header->e_ident);
+	print_version(header->e_ident);
+	print_osabi(header->e_ident);
+	print_abi(header->e_ident);
+	print_type_entry(header->e_type, header->e_ident);
 
 	free(header);
 	close_elf(o);
