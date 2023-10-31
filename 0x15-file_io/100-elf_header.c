@@ -1,115 +1,160 @@
+#include <elf.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <elf.h>
-#include <stdint.h>
 
 /**
- * get_e_type - returns the string description of e_type
- * @e_type: the e_type value
- * Return: string description
+ * elfCheckElf - checks if the file is an ELF file.
+ * @e_ident: A pointer to the ELF identifier.
  */
-const char *get_e_type(uint16_t e_type)
+void elfCheckElf(unsigned char *e_ident)
 {
-	switch (e_type)
+	if (e_ident[0] != 0x7f || e_ident[1] != 'E' ||
+	    e_ident[2] != 'L' || e_ident[3] != 'F')
 	{
-	case ET_NONE: return "NONE (No file type)";
-	case ET_REL: return "REL (Relocatable file)";
-	case ET_EXEC: return "EXEC (Executable file)";
-	case ET_DYN: return "DYN (Shared object file)";
-	case ET_CORE: return "CORE (Core file)";
-	default: return "<unknown>";
+		dprintf(STDERR_FILENO, "Error: Not an ELF file\n");
+		exit(98);
 	}
 }
 
 /**
- * get_ei_osabi - returns the string description of EI_OSABI
- * @ei_osabi: the EI_OSABI value
- * Return: string description
+ * getType - returns the string description of e_type.
+ * @type: The e_type value.
+ * Return: String description.
  */
-const char *get_ei_osabi(unsigned char ei_osabi)
+const char *getType(int type)
 {
-	switch (ei_osabi)
+	switch (type)
 	{
-	case ELFOSABI_SYSV: return "UNIX - System V";
-	case ELFOSABI_HPUX: return "UNIX - HP-UX";
-	case ELFOSABI_NETBSD: return "UNIX - NetBSD";
-	case ELFOSABI_LINUX: return "UNIX - Linux";
-	case ELFOSABI_SOLARIS: return "UNIX - Solaris";
-	default: return "<unknown>";
+		case ET_NONE: return "NONE (None)";
+		case ET_REL: return "REL (Relocatable file)";
+		case ET_EXEC: return "EXEC (Executable file)";
+		case ET_DYN: return "DYN (Shared object file)";
+		case ET_CORE: return "CORE (Core file)";
+		default: return "<unknown>";
 	}
 }
 
 /**
- * print_magic - prints the magic numbers
- * @header: the ELF header
+ * getOSABI - returns the string description of EI_OSABI.
+ * @osabi: The EI_OSABI value.
+ * Return: String description.
  */
-void print_magic(Elf64_Ehdr header)
+const char *getOSABI(int osabi)
 {
-	int i;
-
-	printf("  Magic:   ");
-	for (i = 0; i < EI_NIDENT; i++)
-		printf("%02x ", header.e_ident[i]);
-	printf("\n");
+	switch (osabi)
+	{
+		case ELFOSABI_NONE: return "UNIX - System V";
+		case ELFOSABI_HPUX: return "UNIX - HP-UX";
+		case ELFOSABI_NETBSD: return "UNIX - NetBSD";
+		case ELFOSABI_GNU: return "UNIX - GNU";
+		case ELFOSABI_SOLARIS: return "UNIX - Solaris";
+		default: return "<unknown>";
+	}
 }
 
 /**
- * print_header - prints the ELF header
- * @header: the ELF header
+ * elfDisplayAll - displays the ELF header.
+ * @header: A pointer to the ELF header.
  */
-void print_header(Elf64_Ehdr header)
+void elfDisplayAll(Elf64_Ehdr *header)
 {
+	int index;
+
 	printf("ELF Header:\n");
-	print_magic(header);
+	printf("  Magic:   ");
+	for (index = 0; index < EI_NIDENT; index++)
+		printf("%02x ", header->e_ident[index]);
+	printf("\n");
 	printf("  Class:                             ");
-	printf("%s\n", header.e_ident[EI_CLASS] == ELFCLASS32 ? "ELF32" : "ELF64");
+	printf(header->e_ident[EI_CLASS] == ELFCLASS32 ? "ELF32\n" : "ELF64\n");
 	printf("  Data:                              ");
-	printf("%s\n", header.e_ident[EI_DATA] == ELFDATA2LSB ?
-	       "2's complement, little endian" : "2's complement, big endian");
-	printf("  Version:                           ");
-	printf("%d (current)\n", header.e_ident[EI_VERSION]);
-	printf("  OS/ABI:                            ");
-	printf("%s\n", get_ei_osabi(header.e_ident[EI_OSABI]));
-	printf("  ABI Version:                       %d\n", header.e_ident[EI_ABIVERSION]);
-	printf("  Type:                              %s\n", get_e_type(header.e_type));
-	printf("  Entry point address:               %lx\n", header.e_entry);
+	printf(header->e_ident[EI_DATA] == ELFDATA2LSB ? "2's complement, little endian\n" : "2's complement, big endian\n");
+	printf("  Version:                           %d (current)\n", header->e_ident[EI_VERSION]);
+	printf("  OS/ABI:                            %s\n", getOSABI(header->e_ident[EI_OSABI]));
+	printf("  ABI Version:                       %d\n", header->e_ident[EI_ABIVERSION]);
+	printf("  Type:                              %s\n", getType(header->e_type));
+	printf("  Entry point address:               %lx\n", header->e_entry);
 }
 
-int main(int argc, char **argv)
+/**
+ * elfOpenFile - opens an ELF file.
+ * @filename: The name of the file to open.
+ * Return: The file descriptor.
+ */
+int elfOpenFile(char *filename)
 {
-	int fd;
-	Elf64_Ehdr header;
+	int fd = open(filename, O_RDONLY);
 
-	if (argc != 2) {
-		fprintf(stderr, "Usage: elf_header elf_filename\n");
+	if (fd == -1)
+	{
+		dprintf(STDERR_FILENO, "Error: Can't read file %s\n", filename);
 		exit(98);
 	}
-
-	fd = open(argv[1], O_RDONLY);
-	if (fd == -1) {
-		fprintf(stderr, "Error opening file %s\n", argv[1]);
-		exit(98);
-	}
-
-	if (read(fd, &header, sizeof(header)) != sizeof(header)) {
-		fprintf(stderr, "Error reading ELF header from file %s\n", argv[1]);
-		exit(98);
-	}
-
-	if (header.e_ident[EI_MAG0] != ELFMAG0 ||
-	    header.e_ident[EI_MAG1] != ELFMAG1 ||
-	    header.e_ident[EI_MAG2] != ELFMAG2 ||
-	    header.e_ident[EI_MAG3] != ELFMAG3) {
-		fprintf(stderr, "File %s is not an ELF file.\n", argv[1]);
-		exit(98);
-	}
-
-	print_header(header);
-
-	close(fd);
-
-	return 0;
+	return fd;
 }
 
+/**
+ * elfReadHeader - reads the ELF header from a file.
+ * @fileDescriptor: The file descriptor.
+ * Return: A pointer to the ELF header.
+ */
+Elf64_Ehdr *elfReadHeader(int fileDescriptor)
+{
+	Elf64_Ehdr *header = malloc(sizeof(Elf64_Ehdr));
+
+	if (!header)
+	{
+		dprintf(STDERR_FILENO, "Error: Can't allocate memory for ELF header\n");
+		exit(98);
+	}
+	if (read(fileDescriptor, header, sizeof(Elf64_Ehdr)) != sizeof(Elf64_Ehdr))
+	{
+		free(header);
+		dprintf(STDERR_FILENO, "Error reading ELF header\n");
+		exit(98);
+	}
+	return header;
+}
+
+/**
+ * elfCloseFile - closes a file.
+ * @fileDescriptor: The file descriptor.
+ */
+void elfCloseFile(int fileDescriptor)
+{
+	if (close(fileDescriptor) == -1)
+	{
+		dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", fileDescriptor);
+		exit(98);
+	}
+}
+
+/**
+ * main - Entry point.
+ * @argc: Argument count.
+ * @argv: Argument vector.
+ * Return: 0 on success, 98 on failure.
+ */
+int main(int argc, char *argv[])
+{
+	int fileDescriptor;
+	Elf64_Ehdr *header;
+
+	if (argc != 2)
+	{
+		dprintf(STDERR_FILENO, "Usage: %s <elf_file>\n", argv[0]);
+		exit(98);
+	}
+
+	fileDescriptor = elfOpenFile(argv[1]);
+	header = elfReadHeader(fileDescriptor);
+
+	elfCheckElf(header->e_ident);
+	elfDisplayAll(header);
+
+	free(header);
+	elfCloseFile(fileDescriptor);
+	return (0);
+}
