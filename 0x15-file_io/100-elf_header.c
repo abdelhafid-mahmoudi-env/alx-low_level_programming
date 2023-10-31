@@ -72,52 +72,44 @@ void print_header(Elf64_Ehdr header)
 	printf("%d (current)\n", header.e_ident[EI_VERSION]);
 	printf("  OS/ABI:                            ");
 	printf("%s\n", get_ei_osabi(header.e_ident[EI_OSABI]));
-	printf("  ABI Version:                       %d\n",
-	       header.e_ident[EI_ABIVERSION]);
-	printf("  Type:                              ");
-	printf("%s\n", get_e_type(header.e_type));
-	printf("  Entry point address:               0x%lx\n",
-	       header.e_entry);
+	printf("  ABI Version:                       %d\n", header.e_ident[EI_ABIVERSION]);
+	printf("  Type:                              %s\n", get_e_type(header.e_type));
+	printf("  Entry point address:               %lx\n", header.e_entry);
 }
 
-/**
- * main - Entry point
- * @argc: Argument count
- * @argv: Argument vector
- * Return: 0 on success, 98 on failure
- */
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
 	int fd;
 	Elf64_Ehdr header;
 
-	if (argc != 2)
-	{
-		write(2, "Usage: elf_header elf_filename\n", 31);
+	if (argc != 2) {
+		fprintf(stderr, "Usage: elf_header elf_filename\n");
 		exit(98);
 	}
+
 	fd = open(argv[1], O_RDONLY);
-	if (fd == -1)
-	{
-		perror("Error");
+	if (fd == -1) {
+		fprintf(stderr, "Error opening file %s\n", argv[1]);
 		exit(98);
 	}
-	if (read(fd, &header, sizeof(header)) != sizeof(header))
-	{
-		perror("Error");
-		close(fd);
+
+	if (read(fd, &header, sizeof(header)) != sizeof(header)) {
+		fprintf(stderr, "Error reading ELF header from file %s\n", argv[1]);
 		exit(98);
 	}
+
 	if (header.e_ident[EI_MAG0] != ELFMAG0 ||
 	    header.e_ident[EI_MAG1] != ELFMAG1 ||
 	    header.e_ident[EI_MAG2] != ELFMAG2 ||
-	    header.e_ident[EI_MAG3] != ELFMAG3)
-	{
-		write(2, "Not an ELF file\n", 16);
-		close(fd);
+	    header.e_ident[EI_MAG3] != ELFMAG3) {
+		fprintf(stderr, "File %s is not an ELF file.\n", argv[1]);
 		exit(98);
 	}
+
 	print_header(header);
+
 	close(fd);
-	return (0);
+
+	return 0;
 }
+
