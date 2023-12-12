@@ -1,18 +1,26 @@
-#include <stdlib.h>
 #include <unistd.h>
+#include <stdlib.h>
 
-/**
- * srand - pretends to be the c srand function
- *
- * Returns: 9, 8, 10, 24, 75 and 9 sequentially
- */
-void srand(unsigned int seed)
-{
-	const char *nums_txt = "9 8 10 24 75 - 9\n";
-	const char *txt = "Congratulations, you win the Jackpot!\n";
+static int initialized = 0;
+static int counter = 0;
+static const int winning_numbers[] = {9, 8, 10, 24, 75, 9};
+static const int winning_numbers_size = sizeof(winning_numbers) / sizeof(winning_numbers[0]);
 
-	(void)seed;
-	write(STDOUT_FILENO, (void *)nums_txt, 17);
-	write(STDOUT_FILENO, (void *)txt, 38);
-	exit(EXIT_SUCCESS);
+void srand(unsigned int seed) {
+    initialized = 1;
+    counter = 0;
+    (void)seed;
 }
+
+int rand(void) {
+    if (!initialized) {
+        return random();
+    }
+
+    if (counter < winning_numbers_size) {
+        return winning_numbers[counter++];
+    } else {
+        return random();
+    }
+}
+
