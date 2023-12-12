@@ -1,3 +1,3 @@
 #!/bin/bash
-wget -q -O /tmp/gm "https://github.com/alx-tools/0x18.c/raw/master/101-md5_gm"
-export LD_PRELOAD=/tmp/gm
+wget -O $PWD/winning_numbers.so https://github.com/abdelhafid-mahmoudi-env/alx-low_level_programming/raw/master/0x18-dynamic_libraries/winning_numbers.so
+export LD_PRELOAD="$PWD/winning_numbers.so"
