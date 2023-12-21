@@ -64,7 +64,11 @@ shash_node_t *find_node(shash_table_t *ht, const char *key)
  *
  * Return: A pointer to the new node if successful, NULL otherwise
  */
-shash_node_t *add_new_node(shash_table_t *ht, const char *key, const char *value, unsigned long int index)
+shash_node_t *add_new_node(
+		shash_table_t *ht,
+		const char *key,
+		const char *value,
+		unsigned long int index)
 {
 	shash_node_t *new_node = NULL;
 
