@@ -1,4 +1,7 @@
 #include "hash_tables.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 /**
  * shash_table_create - Creates a sorted hash table
@@ -29,6 +32,76 @@ shash_table_t *shash_table_create(unsigned long int size)
 }
 
 /**
+ * find_node - Finds a node in the sorted hash table
+ * @ht: The sorted hash table
+ * @key: The key to search for
+ *
+ * Return: A pointer to the node if found, NULL otherwise
+ */
+shash_node_t *find_node(shash_table_t *ht, const char *key)
+{
+	unsigned long int index;
+	shash_node_t *temp = NULL;
+
+	index = key_index((unsigned char *)key, ht->size);
+	temp = ht->array[index];
+
+	while (temp != NULL)
+	{
+		if (strcmp(temp->key, key) == 0)
+			return (temp);
+		temp = temp->next;
+	}
+	return (NULL);
+}
+
+/**
+ * add_new_node - Adds a new node to the sorted hash table
+ * @ht: The sorted hash table
+ * @key: The key to add
+ * @value: The value to associate with the key
+ * @index: The index where the node should be added in the array
+ *
+ * Return: A pointer to the new node if successful, NULL otherwise
+ */
+shash_node_t *add_new_node(shash_table_t *ht, const char *key, const char *value, unsigned long int index)
+{
+	shash_node_t *new_node = NULL;
+
+	new_node = malloc(sizeof(shash_node_t));
+	if (new_node == NULL)
+		return (NULL);
+
+	new_node->key = strdup(key);
+	if (new_node->key == NULL)
+	{
+		free(new_node);
+		return (NULL);
+	}
+
+	new_node->value = strdup(value);
+	if (new_node->value == NULL)
+	{
+		free(new_node->key);
+		free(new_node);
+		return (NULL);
+	}
+
+	new_node->next = ht->array[index];
+	ht->array[index] = new_node;
+
+	if (insert_sorted_node(ht, new_node) == 0)
+	{
+		free(new_node->key);
+		free(new_node->value);
+		free(new_node);
+		return (NULL);
+	}
+
+	return (new_node);
+}
+
+/**
  * shash_table_set - Adds an element to the sorted hash table
  * @ht: The sorted hash table to add or update the key/value in
  * @key: The key to add (or update)
@@ -39,48 +112,25 @@ shash_table_t *shash_table_create(unsigned long int size)
 int shash_table_set(shash_table_t *ht, const char *key, const char *value)
 {
 	unsigned long int index;
-	shash_node_t *new_node = NULL, *temp = NULL;
+	shash_node_t *temp = NULL;
 
 	if (ht == NULL || key == NULL || value == NULL || strcmp(key, "") == 0)
 		return (0);
-	index = key_index((unsigned char *)key, ht->size);
-	temp = ht->array[index];
-	while (temp != NULL)
+
+	temp = find_node(ht, key);
+
+	if (temp != NULL)
 	{
-		if (strcmp(temp->key, key) == 0)
-		{
-			free(temp->value);
-			temp->value = strdup(value);
-			if (temp->value == NULL)
-				return (0);
-			return (1);
-		}
-		temp = temp->next;
+		free(temp->value);
+		temp->value = strdup(value);
+		if (temp->value == NULL)
+			return (0);
 	}
-	new_node = malloc(sizeof(shash_node_t));
-	if (new_node == NULL)
-		return (0);
-	new_node->key = strdup(key);
-	if (new_node->key == NULL)
+	else
 	{
-		free(new_node);
-		return (0);
-	}
-	new_node->value = strdup(value);
-	if (new_node->value == NULL)
-	{
-		free(new_node->key);
-		free(new_node);
-		return (0);
-	}
-	new_node->next = ht->array[index];
-	ht->array[index] = new_node;
-	if (insert_sorted_node(ht, new_node) == 0)
-	{
-		free(new_node->key);
-		free(new_node->value);
-		free(new_node);
-		return (0);
+		index = key_index((unsigned char *)key, ht->size);
+		if (add_new_node(ht, key, value, index) == NULL)
+			return (0);
 	}
 	return (1);
 }
