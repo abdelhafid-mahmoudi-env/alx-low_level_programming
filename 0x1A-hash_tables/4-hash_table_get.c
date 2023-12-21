@@ -1,13 +1,11 @@
 #include "hash_tables.h"
 
 /**
- * hash_table_get - Retrieves a value associated 
- * with a key in the hash table.
+ * hash_table_get - Retrieves a value.
  * @ht: The hash table to look into.
  * @key: The key to find.
  *
- * Return: The value associated with the key, 
- * or NULL if key couldn’t be found.
+ * Return: The value associated with the key.
  */
 char *hash_table_get(const hash_table_t *ht, const char *key)
 {
@@ -16,11 +14,7 @@ char *hash_table_get(const hash_table_t *ht, const char *key)
 
 	if (ht == NULL || key == NULL || *key == '\0')
 		return (NULL);
-
-	/* Get the index for this key */
 	index = key_index((const unsigned char *)key, ht->size);
-
-	/* Search for the key in the linked list at this index */
 	node = ht->array[index];
 	while (node != NULL)
 	{
@@ -28,8 +22,5 @@ char *hash_table_get(const hash_table_t *ht, const char *key)
 			return (node->value);
 		node = node->next;
 	}
-
-	/* If key not found, return NULL */
 	return (NULL);
 }
-
