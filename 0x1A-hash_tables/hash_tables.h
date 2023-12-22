@@ -86,11 +86,5 @@ char *shash_table_get(const shash_table_t *ht, const char *key);
 void shash_table_print(const shash_table_t *ht);
 void shash_table_print_rev(const shash_table_t *ht);
 void shash_table_delete(shash_table_t *ht);
-int validate_and_prepare(shash_table_t *ht, const char *key,
-			 const char *value, char **value_copy,
-			 unsigned long int *index);
-int update_existing_node(shash_table_t *ht, const char *key, char *value_copy);
-int insert_new_node(shash_table_t *ht, const char *key,
-		    char *value_copy, unsigned long int index);
 
 #endif /* HASH_TABLES_H */
