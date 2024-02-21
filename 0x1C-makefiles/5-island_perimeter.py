@@ -3,6 +3,7 @@
 Function to calculate the perimeter of an island in a grid.
 """
 
+
 def island_perimeter(grid):
     """
     Calculate the perimeter of the island described in grid.
@@ -29,6 +30,7 @@ def island_perimeter(grid):
                     perimeter -= 2  # Subtract 2 if the left neighbor is also land
 
     return perimeter
+
 
 if __name__ == "__main__":
     grid = [
