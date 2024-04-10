@@ -7,7 +7,6 @@
  * @value: The value to search for.
  *
  * Return: If the value is not present in the array or the array.
- *        
  */
 int jump_search(int *array, size_t size, int value)
 {
