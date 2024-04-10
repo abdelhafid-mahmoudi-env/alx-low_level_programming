@@ -9,7 +9,7 @@
  */
 skiplist_t *linear_skip(skiplist_t *list, int value)
 {
-	skiplist_t *current = list, *express_node = NULL, *last_node;
+	skiplist_t *current = list, *express_node = NULL, *last_node = NULL;
 
 	if (!list)
 		return (NULL);
