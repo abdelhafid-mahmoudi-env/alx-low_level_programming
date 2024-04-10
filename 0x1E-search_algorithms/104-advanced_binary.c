@@ -1,49 +1,50 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "search_algos.h"
 
 /**
- * advanced_binary - Performs advanced binary search algorithm
+ * recursive_advanced_binary - Performs advanced binary search recursively
  * @array: The integer array
- * @size: Size of the array
- * @value: Value to search for
+ * @size: The size of the array
+ * @value: The value to search for
  *
- * Return: The index of the first occurrence of value, or -1 if not found
+ * Return: Pointer to the found value or NULL
+ */
+int *recursive_advanced_binary(int *array, size_t size, int value)
+{
+	size_t i = 0;
+
+	if (!size || !array)
+		return (NULL);
+
+	for (printf("Searching in array: "); i < size; i++)
+		printf("%d%s", array[i], i + 1 == size ? "\n" : ", ");
+
+	i = (size - 1) / 2;
+	if (array[i] == value)
+	{
+		if (i)
+			return (recursive_advanced_binary(array, i + 1, value));
+		return (array + i);
+	}
+	else if (array[i] > value)
+		return (recursive_advanced_binary(array, i + 1, value));
+	else
+		return (recursive_advanced_binary(array + i + 1, size - i - 1, value));
+}
+
+/**
+ * advanced_binary - Performs advanced binary search
+ * @array: The integer array
+ * @size: The size of the array
+ * @value: The value to search for
+ *
+ * Return: The index found or -1
  */
 int advanced_binary(int *array, size_t size, int value)
 {
-	size_t left, right, mid, i;
+	int *a = recursive_advanced_binary(array, size, value);
 
-	if (array == NULL || size == 0)
+	if (!a)
 		return (-1);
-
-	left = 0;
-	right = size - 1;
-
-	while (left <= right)
-	{
-		printf("Searching in array: ");
-		for (i = left; i <= right; i++)
-		{
-			printf("%d", array[i]);
-			if (i < right)
-				printf(", ");
-		}
-		printf("\n");
-
-		mid = (left + right) / 2;
-
-		if (array[mid] == value)
-		{
-			if (mid == left || array[mid - 1] != value)
-				return (mid);
-			right = mid;
-		}
-		else if (array[mid] < value)
-			left = mid + 1;
-		else
-			right = mid - 1;
-	}
-
-	return (-1);
+	else
+		return (a - array);
 }
