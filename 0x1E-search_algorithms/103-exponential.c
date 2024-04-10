@@ -10,25 +10,29 @@
  */
 int exponential_search(int *array, size_t size, int value)
 {
-	size_t i, newsize = 0;
+	size_t i = 1;
 	int ret;
+	size_t left, right;
 
 	if (!array || size == 0)
 		return (-1);
 
-	for (i = 1; i < size && array[i] < value; i <<= 1)
+	while (i < size && array[i] < value)
 	{
 		printf("Value checked array[%lu] = [%d]\n", i, array[i]);
+		i *= 2;
 	}
 
-	newsize = (i >= size ? size : i + 1) - (i >> 1);
-	i >>= 1;
+	left = i / 2;
+	right = (i < size) ? i : size - 1;
 
-	printf("Value found between indexes [%lu] and [%lu]\n",
-		   i, i << 1 >= size ? size - 1 : i << 1);
+	printf("Value found between indexes [%lu] and [%lu]\n", left, right);
 
-	ret = binary_search(array, i + 1, value);
-	return (ret == -1 ? ret : ret + (int)i);
+	ret = binary_search(array + left, right - left + 1, value);
+	if (ret != -1)
+		return (ret + left);
+
+	return (-1);
 }
 
 /**
