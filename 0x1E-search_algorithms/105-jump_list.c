@@ -18,7 +18,11 @@ listint_t *jump_list(listint_t *list, size_t size, int value)
 
 	while (list->n < value)
 	{
-		for (last_jump_index = index, last_node = list, count = 0; list->next && count < jump_size; count++)
+		for (
+				last_jump_index = index, last_node = list, count = 0;
+				list->next && count < jump_size;
+				count++
+		)
 		{
 			list = list->next;
 			index++;
